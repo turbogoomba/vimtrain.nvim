@@ -1,0 +1,6 @@
+# Neovim lager denne selv fra hjelpefilene
+doc/tags
+
+# Claude, bare lokalt
+CLAUDE.md
+.claude/
