@@ -1,36 +1,45 @@
--- Here i made the first task
-local tasks = {
-    {
-        message = "Delete this 'Hello' from the sentence.",
-        before = { "Hello World!" },
-        after = { "World!" },
-    },
-    {
-        message = "Change this 'On', to 'Off'.",
-        before = { "This is On!" },
-        after = { "This is Off!" },
-    },
-    {
-        message = "Make Herman surrounded with  ''.",
-        before = { "My name is Herman!" },
-        after = { "My name is 'Herman'!" },
-    },
-}
+local tasks = require("vimtrain.tasks")
+local training_wheels = true
 local current_task
 
+local function make_grid()
+    local grid_list = {}
+    for i = 1, 15 do
+        local row = string.rep(". ", 15)
+        table.insert(grid_list, row)
+    end
+    return grid_list
+end
 
 vim.api.nvim_create_user_command(
     "VimTrain",
     function()
         -- Creates the buffer "main"
         local main = vim.api.nvim_create_buf(false, true)
-        local function make_task()
-            current_task = tasks[math.random(#tasks)]
-            vim.api.nvim_buf_set_lines(main, 0, -1, false, current_task.before) -- writes the task to buffer
-            vim.wo.winbar = current_task.message
+
+        local function show_task()
+            if training_wheels then
+                local display_hint = current_task.message .. " | " .. current_task.hint
+                vim.wo.winbar = display_hint
+            else
+                vim.wo.winbar = current_task.message
+            end
         end
 
-        vim.api.nvim_set_current_buf(main) -- Defines the current window
+        local function make_task()
+            local previous_task = current_task
+
+            repeat
+                current_task = tasks[math.random(#tasks)]
+            until current_task ~= previous_task
+
+            vim.api.nvim_buf_set_lines(main, 0, -1, false, current_task.before) -- writes the task to buffer
+            -- vim.api.nvim_buf_set_lines(main, 0, -1, false, make_grid()) -- writes the task to buffer
+            show_task()
+        end
+
+
+        vim.api.nvim_set_current_buf(main) -- Defines the current windowk
         make_task()
 
         -- Checks if text has changed
@@ -45,7 +54,7 @@ vim.api.nvim_create_user_command(
                         make_task()
                     end, 1000)
                 else
-                    vim.wo.winbar = current_task.message
+                    show_task()
                 end
             end,
         })
