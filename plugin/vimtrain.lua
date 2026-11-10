@@ -1,7 +1,12 @@
 local tasks = require("vimtrain.tasks")
 local training_wheels = true
+local movement_task = true
 local current_task
+local col
+local row
+-- local pos = vim.api.nvim_win_get_pos(0)
 
+-- Implements the grid
 local function make_grid()
     local grid_list = {}
     for i = 1, 15 do
@@ -33,8 +38,17 @@ vim.api.nvim_create_user_command(
                 current_task = tasks[math.random(#tasks)]
             until current_task ~= previous_task
 
-            vim.api.nvim_buf_set_lines(main, 0, -1, false, current_task.before) -- writes the task to buffer
-            -- vim.api.nvim_buf_set_lines(main, 0, -1, false, make_grid()) -- writes the task to buffer
+            local grid = make_grid()
+            col = math.random(1, 15)
+            row = math.random(1, 15)
+            local x_coord = 2 * col - 1
+
+            -- Replaces the dot at x_coord in the chosen row with an x
+            local line = grid[row]
+            grid[row] = line:sub(1, x_coord - 1) .. "x" .. line:sub(x_coord + 1)
+
+            vim.api.nvim_buf_set_lines(main, 0, -1, false, grid) -- writes the grid to buffer
+            vim.api.nvim_win_set_cursor(0, { 1, 0 })
             show_task()
         end
 
